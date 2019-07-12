@@ -46,6 +46,7 @@ core = [
 # Useful for tests and if you need to minimize unsafe usage at the cost of performance on some
 # workloads.
 vec_memory = []
+profiling = []
 
 [workspace]
 members = ["validation"]

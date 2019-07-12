@@ -173,6 +173,7 @@ pub struct Interpreter {
     state: InterpreterState,
     // TODO: should this be a ref? RefCell?
     // TODO: use indexmap? https://github.com/bluss/indexmap
+    #[cfg(feature = "profiling")]
     profiling: HashMap<FuncRef, Duration>,
 }
 
@@ -203,6 +204,7 @@ impl Interpreter {
             call_stack,
             return_type,
             state: InterpreterState::Initialized,
+            #[cfg(feature = "profiling")]
             profiling: HashMap::new(),
         })
     }
@@ -211,6 +213,7 @@ impl Interpreter {
         &self.state
     }
 
+    #[cfg(feature = "profiling")]
     pub fn print_profiling(&self) {
         let total_time = self.profiling.iter().fold(Duration::new(0, 0), |acc, e: (&FuncRef, &Duration)| acc + *e.1);
         println!("Total time taken {}us", total_time.as_micros());
@@ -249,6 +252,7 @@ impl Interpreter {
         // Ensure that stack is empty after the execution. This is guaranteed by the validation properties.
         assert!(self.value_stack.len() == 0);
 
+        #[cfg(feature = "profiling")]
         self.print_profiling();
 
         Ok(opt_return_value)
@@ -282,6 +286,7 @@ impl Interpreter {
         // Ensure that stack is empty after the execution. This is guaranteed by the validation properties.
         assert!(self.value_stack.len() == 0);
 
+        #[cfg(feature = "profiling")]
         self.print_profiling();
 
         Ok(opt_return_value)
@@ -308,6 +313,7 @@ impl Interpreter {
             }
 
             // start profiling here
+            #[cfg(feature = "profiling")]
             let start_time = Instant::now();
 
             let function_return = self
@@ -315,9 +321,13 @@ impl Interpreter {
                 .map_err(Trap::new)?;
 
             // stop profiling here
+            #[cfg(feature = "profiling")]
             let duration = start_time.elapsed();
             // println!("elapsed: {:?}", duration.as_micros());
+            #[cfg(feature = "profiling")]
+            {
             *self.profiling.entry(function_ref.clone()).or_insert(Duration::new(0, 0)) += duration;
+            }
 
             match function_return {
                 RunResult::Return => {
